@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { getMarketplaceProducts } from '@/lib/api';
@@ -437,7 +437,7 @@ function FarmCard({ product }: { product: Product }) {
   );
 }
 
-export default function MarketplacePage() {
+function MarketplaceContent() {
   const searchParams = useSearchParams();
   
   const [search, setSearch] = useState('');
@@ -514,5 +514,19 @@ export default function MarketplacePage() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function MarketplacePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen flex-col bg-[#f9f9f9]">
+        <div className="container mx-auto flex-1 px-5 py-8">
+          <div className="py-12 text-center text-gray-500">Loading...</div>
+        </div>
+      </div>
+    }>
+      <MarketplaceContent />
+    </Suspense>
   );
 }
