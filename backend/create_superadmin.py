@@ -4,11 +4,13 @@ Script to create a superadmin account or show existing superadmin credentials in
 
 import sys
 import os
-sys.path.insert(0, os.path.dirname(__file__))
+
+# Add parent directory to path to enable backend.models import
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(0, parent_dir)
 
 from sqlalchemy.orm import Session
-import database
-import models
+from backend import database, models
 from argon2 import PasswordHasher
 
 # Use argon2 (same as main.py)
