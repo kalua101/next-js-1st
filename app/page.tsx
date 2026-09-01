@@ -51,8 +51,10 @@ export default function HomePage() {
       try {
         setLoading(true);
 
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://next-js-1st-1.onrender.com/api/v1';
+
         // Fetch products via public API endpoint
-        const productsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/products`);
+        const productsRes = await fetch(`${apiUrl}/products`);
         if (productsRes.ok) {
           const products = await productsRes.json();
           if (Array.isArray(products)) {
@@ -62,7 +64,7 @@ export default function HomePage() {
         }
 
         // Fetch stats via public API endpoint
-        const statsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/public/stats`);
+        const statsRes = await fetch(`${apiUrl}/public/stats`);
         if (statsRes.ok) {
           const statsData = await statsRes.json();
           setStats(statsData);
