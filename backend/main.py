@@ -17,8 +17,13 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 # Relative imports prevent import errors regardless of execution root
-from . import models
-from .database import engine, get_db
+try:
+    from . import models
+    from .database import engine, get_db
+except ImportError:
+    # Fallback for when running directly (e.g., uvicorn main:app from backend dir)
+    import models
+    from database import engine, get_db
 
 # Automatically create PostgreSQL / Supabase tables on startup
 models.Base.metadata.create_all(bind=engine)
