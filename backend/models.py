@@ -12,8 +12,11 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-# Relative import fixes ModuleNotFoundError when running uvicorn backend.main:app
-from .database import Base
+# Import Base - try relative first, fallback to absolute
+try:
+    from .database import Base
+except ImportError:
+    from database import Base
 
 
 class UserRole(str, enum.Enum):
