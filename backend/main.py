@@ -37,14 +37,22 @@ app = FastAPI(title="AddisFarmers API - Phase 4")
 
 # Enable CORS for Next.js Frontend
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:3000")
+
+# Get allowed origins - support multiple Vercel URLs
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    FRONTEND_URL
+]
+
+# Add any Vercel URLs from environment
+vercel_url = os.getenv("VERCEL_URL")
+if vercel_url:
+    allowed_origins.append(f"https://{vercel_url}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://next-js-1st-git-main-kaleabt06-gmailcoms-projects.vercel.app",
-        FRONTEND_URL
-    ],
+    allow_origins=["*"],  # Allow all origins for now - you can restrict later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
