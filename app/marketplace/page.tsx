@@ -6,6 +6,9 @@ import Image from 'next/image';
 import { getMarketplaceProducts } from '@/lib/api';
 import { useSearchParams } from 'next/navigation';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 // ==========================================
 // 1. TYPES
 // ==========================================
