@@ -29,7 +29,8 @@ function RegisterForm() {
       // Map frontend role to backend role
       const backendRole = role === 'farmer' ? 'farmer' : 'user';
 
-      const response = await fetch(`${API_URL}/auth/register`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://next-js-1st-1.onrender.com/api/v1';
+      const response = await fetch(`${apiUrl}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
