@@ -1,91 +1,59 @@
 """
-Script to reset superadmin password
+Quick script to reset superadmin password in production database
 """
-
+import sys
 import os
-from sqlalchemy import create_engine, text
-from dotenv import load_dotenv
+
+# Add parent directory to path
+parent_dir = os.path.dirname(os.path.dirname(__file__))
+sys.path.insert(0, parent_dir)
+
+from backend import database, models
 from argon2 import PasswordHasher
 
-# Load environment variables
-load_dotenv()
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if not DATABASE_URL:
-    print("❌ DATABASE_URL not found in .env file")
-    exit(1)
-
-engine = create_engine(DATABASE_URL)
 ph = PasswordHasher()
 
-print("\n" + "="*60)
-print("RESET SUPERADMIN PASSWORD")
-print("="*60 + "\n")
-
-try:
-    with engine.connect() as conn:
-        # Get all superadmin accounts
-        result = conn.execute(text("""
-            SELECT id, full_name, email FROM users WHERE role = 'superadmin'
-        """))
+def reset_password():
+    db = database.SessionLocal()
+    
+    try:
+        # Find superadmin
+        superadmin = db.query(models.UserModel).filter(
+            models.UserModel.email == "superadmin@farmlovers.com"
+        ).first()
         
-        superadmins = result.fetchall()
-        
-        if not superadmins:
-            print("❌ No superadmin account found!")
-            exit(1)
-        
-        print("Found superadmin account(s):\n")
-        for idx, sa in enumerate(superadmins, 1):
-            print(f"{idx}. {sa.full_name} ({sa.email})")
-        
-        print()
-        
-        # Get selection
-        if len(superadmins) > 1:
-            choice = int(input(f"Select account (1-{len(superadmins)}): ")) - 1
-            selected = superadmins[choice]
+        if not superadmin:
+            print("❌ Superadmin not found. Creating new superadmin...")
+            
+            new_superadmin = models.UserModel(
+                full_name="Super Admin",
+                email="superadmin@farmlovers.com",
+                phone_number=None,
+                hashed_password=ph.hash("admin123456"),
+                role="superadmin",
+                is_approved=True
+            )
+            
+            db.add(new_superadmin)
+            db.commit()
+            print("✅ Superadmin created successfully!")
         else:
-            selected = superadmins[0]
+            print(f"✅ Found superadmin: {superadmin.email}")
+            print("Resetting password to: admin123456")
+            
+            superadmin.hashed_password = ph.hash("admin123456")
+            db.commit()
+            print("✅ Password reset successfully!")
         
-        print(f"\nResetting password for: {selected.full_name} ({selected.email})")
+        print("\nLogin credentials:")
+        print("Email: superadmin@farmlovers.com")
+        print("Password: admin123456")
         
-        # Get new password
-        new_password = input("\nEnter new password (min 6 chars): ").strip()
-        
-        if len(new_password) < 6:
-            print("❌ Password must be at least 6 characters!")
-            exit(1)
-        
-        confirm_password = input("Confirm password: ").strip()
-        
-        if new_password != confirm_password:
-            print("❌ Passwords do not match!")
-            exit(1)
-        
-        # Hash password
-        hashed_password = ph.hash(new_password)
-        
-        # Update database
-        conn.execute(
-            text("UPDATE users SET hashed_password = :pwd WHERE id = :id"),
-            {"pwd": hashed_password, "id": selected.id}
-        )
-        conn.commit()
-        
-        print("\n" + "="*60)
-        print("✅ PASSWORD RESET SUCCESSFUL!")
-        print("="*60)
-        print(f"\nAccount: {selected.full_name}")
-        print(f"Email: {selected.email}")
-        print(f"New Password: {new_password}")
-        print("\nYou can now login at:")
-        print("http://localhost:3000/login")
-        print("="*60 + "\n")
-        
-except Exception as e:
-    print(f"\n❌ Error: {str(e)}")
-    print("\nMake sure:")
-    print("1. The database is running")
-    print("2. DATABASE_URL in .env is correct")
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        db.rollback()
+    finally:
+        db.close()
+
+if __name__ == "__main__":
+    reset_password()
